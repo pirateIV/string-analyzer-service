@@ -17,6 +17,8 @@ const { PORT } = env;
 // In-memory database store
 const mockDbStore = new Map();
 
+// Get all strings and their properties, filters not yet implemented
+
 app.get("/strings", (req, res) => {
 	const {} = req.params;
 
@@ -27,22 +29,31 @@ app.get("/strings", (req, res) => {
 	});
 });
 
+// Store a specific string and its properties
+
 app.post("/strings", (req, res) => {
 	const { value } = req.body;
 
+	// Handle invalid of missing request body or field "value"
 	if (!value) {
 		return res.status(400).json({ error: "Missing required field: value" });
 	}
 
+	// Handle invalid "value" format
 	if (typeof value !== "string") {
 		return res.status(422).json({ error: "'value' must be a string" });
 	}
 
+	// We get the string data from our in-memory db by its encryption,
+	// so we compare the hashes if it matches
 	const hash = getSha256Encryption(value);
+
+	// If string already exist in our in-memory db
 	if (mockDbStore.has(hash)) {
 		return res.status(409).json({ error: "String already exists" });
 	}
 
+	// Get the response format
 	const analyzedString = {
 		id: hash,
 		value,
@@ -57,6 +68,7 @@ app.post("/strings", (req, res) => {
 		createdAt: new Date().toISOString(),
 	};
 
+	// Store the string in our in-memory db
 	mockDbStore.set(hash, analyzedString);
 	res.status(201).json(analyzedString);
 });
@@ -64,20 +76,25 @@ app.post("/strings", (req, res) => {
 app.get("/strings/:string_value", (req, res) => {
 	const param = req.params.string_value;
 
+	// Check in case of invalid paramters
 	if (typeof param !== "string") {
 		return res.status(422).json({ error: `Invalid param ${param}: it must be a string` });
 	}
 
+	// decode our string param, hash it and lookup our string on the db if it exists
 	const stringValue = decodeURIComponent(param);
 	const hash = getSha256Encryption(stringValue);
 	const stringData = mockDbStore.get(hash);
 
+	// Handle cases whereby the string might not exist or deleted
 	if (!stringData) {
 		return res.status(400).json({ error: "string not found or deleted" });
 	}
 
 	res.status(200).json(stringData);
 });
+
+// Get strings by natural language
 
 app.get("/strings/filter-by-natural-language", (req, res) => {
 	const { query } = req.params;

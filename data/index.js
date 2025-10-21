@@ -35,7 +35,7 @@ export const mockData = [
 // 			sha256_hash: hash,
 // 			character_frequency_map: getCharacterFrequencyMap(value),
 // 		},
-// 		createdAt: new Date().toISOString(),
+// 		created_at: new Date().toISOString(),
 // 	};
 
 // 	mockDbStore.set(hash, analyzedString);

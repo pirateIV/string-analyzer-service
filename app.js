@@ -20,37 +20,59 @@ const mockDbStore = new Map();
 
 // Populate in-memory store
 for (const value of mockData) {
-  const hash = getSha256Encryption(value);
+	const hash = getSha256Encryption(value);
 
-  const analyzedString = {
-    id: hash,
-    value,
-    properties: {
-      length: value.length,
-      is_palindrome: isPalindrome(value),
-      unique_characters: getUniqueCharCount(value),
-      word_count: getWordCount(value),
-      sha256_hash: hash,
-      character_frequency_map: getCharacterFrequencyMap(value),
-    },
-    createdAt: new Date().toISOString(),
-  };
+	const analyzedString = {
+		id: hash,
+		value,
+		properties: {
+			length: value.length,
+			is_palindrome: isPalindrome(value),
+			unique_characters: getUniqueCharCount(value),
+			word_count: getWordCount(value),
+			sha256_hash: hash,
+			character_frequency_map: getCharacterFrequencyMap(value),
+		},
+		createdAt: new Date().toISOString(),
+	};
 
-  mockDbStore.set(hash, analyzedString);
+	mockDbStore.set(hash, analyzedString);
 }
 
 // Get all strings and their properties, filters not yet implemented
 
 app.get("/strings", (req, res) => {
-	const {} = req.params;
+	const queries = req.query;
+
+	const results = Array.from(mockDbStore.values()).filter((entry) => {
+		const entryProps = entry.properties;
+
+		return [
+			// is_palindrome filter
+			queries.is_palindrome === undefined ||
+				entryProps.is_palindrome === (queries.is_palindrome === "true"),
+
+			// min_length filter
+			queries.min_length === undefined || entryProps.length >= Number(queries.min_length),
+
+			// max_length filter
+			queries.max_length === undefined || entryProps.length <= Number(queries.max_length),
+
+			// word_count filter
+			queries.word_count === undefined || entryProps.word_count === Number(queries.word_count),
+
+			// contains_character filter
+			queries.contains_character === undefined ||
+				entry.value.toLowerCase().includes(queries.contains_character.toLowerCase()),
+		].every((condition) => condition);
+	});
 
 	return res.status(200).json({
-		data: Array.from(mockDbStore.values()),
-		count: mockDbStore.size,
-		filtersApplied: {},
+		data: results,
+		count: results.length,
+		filtersApplied: queries,
 	});
 });
-
 // Store a specific string and its properties
 
 app.post("/strings", (req, res) => {
@@ -158,7 +180,7 @@ app.get("/strings/:string_value", (req, res) => {
 
 	// Check in case of invalid parameter
 	if (!param) {
-		return res.status(400).json({ error: `param is required` });
+		return res.status(400).json({ error: "param is required" });
 	}
 
 	// decode our string param, hash it and lookup our string on the db if it exists

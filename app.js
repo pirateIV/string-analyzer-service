@@ -8,22 +8,21 @@ import {
 	getWordCount,
 	isPalindrome,
 } from "./utils/index.js";
-import { type } from "os";
 
 const app = express();
-
 app.use(express.json());
 
-const mockAnalyzerDB = new Map();
-
 const { PORT } = env;
+
+// In-memory database store
+const mockDbStore = new Map();
 
 app.get("/strings", (req, res) => {
 	const {} = req.params;
 
 	return res.status(200).json({
-		data: [],
-		count: mockAnalyzerDB.length,
+		data: Array.from(mockDbStore.values()),
+		count: mockDbStore.size,
 		filtersApplied: {},
 	});
 });
@@ -40,7 +39,7 @@ app.post("/strings", (req, res) => {
 	}
 
 	const hash = getSha256Encryption(value);
-	if (mockAnalyzerDB.has(hash)) {
+	if (mockDbStore.has(hash)) {
 		return res.status(409).json({ error: "String already exists" });
 	}
 
@@ -49,8 +48,8 @@ app.post("/strings", (req, res) => {
 		value,
 		properties: {
 			length: value.length,
-			uniqueCharacters: getUniqueCharCount(value),
 			is_palindrome: isPalindrome(value),
+			unique_characters: getUniqueCharCount(value),
 			word_count: getWordCount(value),
 			sha256_hash: hash,
 			character_frequency_map: getCharacterFrequencyMap(value),
@@ -58,13 +57,14 @@ app.post("/strings", (req, res) => {
 		createdAt: new Date().toISOString(),
 	};
 
+	mockDbStore.set(hash, analyzedString);
 	res.status(201).json(analyzedString);
 });
 
 app.get("/strings/:string", (req, res) => {
 	const { string } = req.query;
 
-	const stringData = mockAnalyzerDB.get(string);
+	const stringData = mockDbStore.get(string);
 
 	if (!stringData) {
 	}

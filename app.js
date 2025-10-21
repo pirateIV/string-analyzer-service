@@ -4,12 +4,15 @@ import { env } from "./config/env.js";
 import {
 	getCharacterFrequencyMap,
 	getSha256Encryption,
-	getStringUniqueChars,
+	getUniqueCharCount,
 	getWordCount,
 	isPalindrome,
 } from "./utils/index.js";
+import { type } from "os";
 
 const app = express();
+
+app.use(express.json());
 
 const mockAnalyzerDB = new Map();
 
@@ -26,22 +29,31 @@ app.get("/strings", (req, res) => {
 });
 
 app.post("/strings", (req, res) => {
-	const string = req.body.value;
+	const { value } = req.body;
 
-	if (mockAnalyzerDB.has(string)) {
-		return res.status(400).json({});
+	if (!value) {
+		return res.status(400).json({ error: "Missing required field: value" });
+	}
+
+	if (typeof value !== "string") {
+		return res.status(422).json({ error: "'value' must be a string" });
+	}
+
+	const hash = getSha256Encryption(value);
+	if (mockAnalyzerDB.has(hash)) {
+		return res.status(409).json({ error: "String already exists" });
 	}
 
 	const analyzedString = {
-		id: getSha256Encryption(string),
-		value: string,
+		id: hash,
+		value,
 		properties: {
-			length: string.length,
-			uniqueCharacters: getStringUniqueChars().length,
-			is_palindrome: isPalindrome(string),
-			word_count: getWordCount(string),
-			sha256_hash: getSha256Encryption(string),
-			character_frequency_map: getCharacterFrequencyMap(string),
+			length: value.length,
+			uniqueCharacters: getUniqueCharCount(value),
+			is_palindrome: isPalindrome(value),
+			word_count: getWordCount(value),
+			sha256_hash: hash,
+			character_frequency_map: getCharacterFrequencyMap(value),
 		},
 		createdAt: new Date().toISOString(),
 	};

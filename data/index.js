@@ -1,0 +1,21 @@
+// Mock data for testing my requests manually (includes palindromes, single characters, mutliple words)
+export const mockData = [
+	"a",
+	"z",
+  "abc",
+	"madam",
+	"racecar",
+	"hello world",
+	"javascript",
+	"Anna",
+	"never odd or even",
+	"palindrome test",
+	"zz top",
+	"abracadabra",
+	"no lemon no melon",
+	"a man a plan a canal panama",
+	"Zebra zone",
+	"testing words",
+	"rotator",
+	"step on no pets",
+];

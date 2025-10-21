@@ -3,8 +3,6 @@
 A lightweight Express.js API for analyzing and managing strings.
 It computes and stores string properties such as **length**, **palindromic status**, **unique characters**, **word count**, and **SHA256 encryption** — all in memory.
 
----
-
 ### Features
 
 -  Compute SHA256 hash of any string.
@@ -14,8 +12,6 @@ It computes and stores string properties such as **length**, **palindromic statu
 -  Retrieve all stored strings or a specific one.
 -  Query strings using **natural language** (e.g., “strings containing the letter z”).
 
----
-
 ### Tech Stack
 
 -  **Node.js** + **Express.js**
@@ -24,14 +20,12 @@ It computes and stores string properties such as **length**, **palindromic statu
 -  Crypto utilities for hashing
 -  dotenv (not required, unless to change the default port)
 
----
-
 ### Installation & Setup
 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/<your-username>/string-analyzer-service.git
+   git clone https://github.com/pirateIV/string-analyzer-service.git
    cd string-analyzer-service
    ```
 
@@ -50,12 +44,22 @@ It computes and stores string properties such as **length**, **palindromic statu
 4. Start the server:
 
    ```bash
-   npm run dev
+   npm start
+   ```
+
+   For development, run:
+
+   ```bash
+   npm install nodemon -D
+   ```
+
+   Run it, or better still configure it in your package.json:
+
+   ```bash
+   nodemon app.js
    ```
 
    The service runs on [http://localhost:3000](http://localhost:3000).
-
----
 
 ### API Routes
 
@@ -89,11 +93,9 @@ Analyze and store a new string.
 			"v": 1
 		}
 	},
-	"createdAt": "2025-10-21T00:00:00.000Z"
+	"created_at": "2025-10-21T00:00:00.000Z"
 }
 ```
-
----
 
 #### **GET /strings**
 
@@ -114,8 +116,6 @@ GET /strings
 /strings?contains_character=z
 ```
 
----
-
 #### **GET /strings/:string_value**
 
 Retrieve a specific analyzed string.
@@ -135,8 +135,6 @@ GET /strings/level
   "properties": { ... }
 }
 ```
-
----
 
 #### **GET /strings/filter-by-natural-language**
 
@@ -169,8 +167,6 @@ GET /strings/filter-by-natural-language?query=all single word palindromic string
 }
 ```
 
----
-
 ### Example Strings for Testing
 
 ```js
@@ -186,8 +182,6 @@ GET /strings/filter-by-natural-language?query=all single word palindromic string
 ];
 ```
 
----
-
 ### How It Works
 
 1. The service hashes every string using SHA256 to ensure uniqueness.
@@ -195,13 +189,9 @@ GET /strings/filter-by-natural-language?query=all single word palindromic string
 3. Subsequent requests check against this hash before insertion.
 4. Natural-language queries map to preset filters (like length, word count, etc.).
 
----
-
 ### My notes
 
-> “I built this project to understand string algorithms, natural language parsing, and efficient in-memory data management in Node.js.”
-
----
+This project helped me understand text analysis, hashing, and designing clean REST APIs in Node.js.
 
 ### Future Improvements
 

@@ -47,7 +47,7 @@ app.get("/strings", (req, res) => {
 	return res.status(200).json({
 		data: results,
 		count: results.length,
-		filtersApplied: queries,
+		filters_applied: queries,
 	});
 });
 // Store a specific string and its properties
@@ -86,7 +86,7 @@ app.post("/strings", (req, res) => {
 			sha256_hash: hash,
 			character_frequency_map: getCharacterFrequencyMap(value),
 		},
-		createdAt: new Date().toISOString(),
+		created_at: new Date().toISOString(),
 	};
 
 	// Store the string in our in-memory db
@@ -168,11 +168,24 @@ app.get("/strings/:string_value", (req, res) => {
 
 	// Handle cases whereby the string might not exist or deleted
 	if (!stringData) {
-		return res.status(400).json({ error: "string not found or deleted" });
+		return res.status(404).json({ error: "string not found or deleted" });
 	}
 
 	res.status(200).json(stringData);
 });
+
+app.delete("/strings/:string_value", (req, res) => {
+  const stringValue = decodeURIComponent(req.params.string_value);
+  const hash = getSha256Encryption(stringValue);
+
+  if (!mockDbStore.has(hash)) {
+    return res.status(404).json({ error: "String does not exist in the system" });
+  }
+
+  mockDbStore.delete(hash);
+  return res.sendStatus(204);
+});
+
 
 // Handle invalid routes (404)
 app.use((_req, res) => {

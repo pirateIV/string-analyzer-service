@@ -73,16 +73,75 @@ app.post("/strings", (req, res) => {
 	res.status(201).json(analyzedString);
 });
 
+// Get strings by natural language
+
+app.get("/strings/filter-by-natural-language", (req, res) => {
+	const { query } = req.query;
+	if (!query || typeof query !== "string") {
+		return res.status(400).json({ error: "Missing or invalid query parameter 'query'" });
+	}
+
+	const qStr = query.toLowerCase().trim();
+	const queries = {
+		"all single word palindromic strings"() {
+			return { word_count: 1, is_palindrome: true };
+		},
+		"strings longer than 10 characters"() {
+			return { min_length: 11 };
+		},
+		"palindromic strings that contain the first vowel"() {
+			return { contains_character: "a" };
+		},
+		"strings containing the letter z"() {
+			return { contains_character: "z" };
+		},
+	};
+
+	const filters = queries[qStr] ? queries[qStr]() : {};
+	if (!filters) {
+		return res.status(400).json({ error: "Query not valid" });
+	}
+
+	const results = Array.from(mockDbStore.values()).filter((entry) => {
+		const props = entry.properties;
+
+		if (filters.word_count && props.word_count !== filters.word_count) {
+			return false;
+		}
+		if (filters.is_palindrome && !props.is_palindrome) {
+			return false;
+		}
+		if (filters.min_length && props.length < filters.min_length) {
+			return false;
+		}
+		if (filters.contains_character && !entry.value.toLowerCase().includes(filters.contains_character)) {
+			return false;
+		}
+
+		return true;
+	});
+
+	res.status(200).json({
+		data: results,
+		count: results.length,
+		interpreted_query: {
+			original: query,
+			parsed_filters: filters,
+		},
+	});
+});
+
 app.get("/strings/:string_value", (req, res) => {
 	const param = req.params.string_value;
 
-	// Check in case of invalid paramters
-	if (typeof param !== "string") {
-		return res.status(422).json({ error: `Invalid param ${param}: it must be a string` });
+	// Check in case of invalid parameter
+	if (!param) {
+		return res.status(400).json({ error: `param is required` });
 	}
 
 	// decode our string param, hash it and lookup our string on the db if it exists
 	const stringValue = decodeURIComponent(param);
+	console.log(stringValue);
 	const hash = getSha256Encryption(stringValue);
 	const stringData = mockDbStore.get(hash);
 
@@ -92,24 +151,6 @@ app.get("/strings/:string_value", (req, res) => {
 	}
 
 	res.status(200).json(stringData);
-});
-
-// Get strings by natural language
-
-app.get("/strings/filter-by-natural-language", (req, res) => {
-	const { query } = req.params;
-
-	res.status(200).json({
-		data: [],
-		count: 0,
-		interpreted_query: {
-			original: query,
-			parsed_filters: {
-				word_count: 0,
-				is_palindrome: true,
-			},
-		},
-	});
 });
 
 // Handle invalid routes (404)

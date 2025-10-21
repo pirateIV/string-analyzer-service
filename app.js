@@ -61,13 +61,22 @@ app.post("/strings", (req, res) => {
 	res.status(201).json(analyzedString);
 });
 
-app.get("/strings/:string", (req, res) => {
-	const { string } = req.query;
+app.get("/strings/:string_value", (req, res) => {
+	const param = req.params.string_value;
 
-	const stringData = mockDbStore.get(string);
+	if (typeof param !== "string") {
+		return res.status(422).json({ error: `Invalid param ${param}: it must be a string` });
+	}
+
+	const stringValue = decodeURIComponent(param);
+	const hash = getSha256Encryption(stringValue);
+	const stringData = mockDbStore.get(hash);
 
 	if (!stringData) {
+		return res.status(400).json({ error: "string not found or deleted" });
 	}
+
+	res.status(200).json(stringData);
 });
 
 app.get("/strings/filter-by-natural-language", (req, res) => {

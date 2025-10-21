@@ -8,7 +8,7 @@ import {
 	getWordCount,
 	isPalindrome,
 } from "./utils/index.js";
-import { mockData } from "./data/index.js";
+// import { mockData } from "./data/index.js";
 
 const app = express();
 app.use(express.json());
@@ -17,29 +17,6 @@ const { PORT } = env;
 
 // In-memory database store
 const mockDbStore = new Map();
-
-// Populate in-memory store
-for (const value of mockData) {
-	const hash = getSha256Encryption(value);
-
-	const analyzedString = {
-		id: hash,
-		value,
-		properties: {
-			length: value.length,
-			is_palindrome: isPalindrome(value),
-			unique_characters: getUniqueCharCount(value),
-			word_count: getWordCount(value),
-			sha256_hash: hash,
-			character_frequency_map: getCharacterFrequencyMap(value),
-		},
-		createdAt: new Date().toISOString(),
-	};
-
-	mockDbStore.set(hash, analyzedString);
-}
-
-// Get all strings and their properties, filters not yet implemented
 
 app.get("/strings", (req, res) => {
 	const queries = req.query;

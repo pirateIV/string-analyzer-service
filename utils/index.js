@@ -5,8 +5,9 @@ export function isPalindrome(string) {
 	return normalized === Array.from(normalized).reverse().join("");
 }
 
-export function getWordCount(string) {
-	return string.split(" ").length;
+export function getWordCount(str) {
+	const trimmed = str.trim();
+	return trimmed ? trimmed.split(/\s+/).length : 0;
 }
 
 export function getSha256Encryption(string) {
